@@ -15,4 +15,8 @@ def create_adapter(config: AppConfig) -> DatasetAdapter:
         from anomaly_detection.datasets.mvtec import MVTecAD2Adapter
 
         return MVTecAD2Adapter.from_config(config)
+    if config.dataset.type == "walnut":
+        from anomaly_detection.datasets.walnut import WalnutAdapter
+
+        return WalnutAdapter.from_config(config)
     raise NotImplementedError(f"dataset.type={config.dataset.type} のAdapterは未実装です。")

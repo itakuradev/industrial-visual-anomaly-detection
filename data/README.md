@@ -81,7 +81,8 @@ from anomaly_detection.datasets.walnut import WalnutAdapter
 from anomaly_detection.utils.config import load_config
 
 config = load_config("configs/phase2_walnut.yaml")
-WalnutAdapter.from_config(config).build_manifest()  # 既存のmanifest.csvは overwrite=True の時だけ上書き
+# 既存のmanifest.csvは overwrite=True の時だけ上書きする
+WalnutAdapter.from_config(config).build_manifest()
 ```
 
 作成後にmanifest.csvを手で修正することもできます。読み込み時に、必須列・ファイル存在・値・

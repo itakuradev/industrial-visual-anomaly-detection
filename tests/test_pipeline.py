@@ -79,3 +79,21 @@ def test_missing_dataset_does_not_create_run(small_config, mvtec_root: Path) -> 
         run_experiment(small_config, pre_trained=False)
     run_root = Path(small_config.output.run_root)
     assert not run_root.exists() or not any(run_root.iterdir())
+
+
+def test_walnut_uses_same_pipeline(walnut_config) -> None:
+    from anomaly_detection.datasets import create_adapter
+
+    create_adapter(walnut_config).build_manifest()
+    result = run_experiment(walnut_config, pre_trained=False)
+    assert result.metrics["pixel"] is None  # MaskなしのためImage-level評価のみ
+    image = result.metrics["image"]
+    assert (image["num_good"], image["num_defect"]) == (4, 4)
+    assert result.gt_masks is None
+    assert (result.run.run_dir / "anomaly_maps.npz").is_file()
+    assert result.run.run_id.endswith("_phase2")
+    overlays = sorted(p.name for p in (result.run.run_dir / "images" / "overlays").iterdir())
+    assert any("_crack_" in name for name in overlays)
+
+    re = reevaluate(result.run.run_dir, result.threshold.value)
+    assert re.metrics["image"] == image  # 同じThresholdなら同じ結果

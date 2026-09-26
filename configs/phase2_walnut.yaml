@@ -9,6 +9,10 @@ dataset:
   type: walnut
   root: data/walnut
   manifest: data/walnut/manifest.csv
+  # Manifest作成（build_manifest）時のsplit比率。同じobject_idの画像は同じsplitに入る
+  split:
+    good: {train: 0.6, validation: 0.2, test: 0.2}
+    defect: {validation: 0.5, test: 0.5}  # 異常画像は学習に使わない
 
 model:
   name: patchcore

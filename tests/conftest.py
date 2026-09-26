@@ -11,6 +11,7 @@ from anomaly_detection.utils.config import AppConfig, load_config
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PHASE1_CONFIG = PROJECT_ROOT / "configs" / "phase1_mvtec_vial.yaml"
+PHASE2_CONFIG = PROJECT_ROOT / "configs" / "phase2_walnut.yaml"
 IMAGE_SIZE = (48, 64)  # (height, width)
 
 
@@ -68,4 +69,49 @@ def small_config(mvtec_root: Path, tmp_path: Path) -> AppConfig:
         preprocessing=preprocessing,
         runtime=dataclasses.replace(config.runtime, device="cpu", batch_size=4),
         output=dataclasses.replace(config.output, run_root=str(tmp_path / "runs")),
+    )
+
+
+def small_runtime(config: AppConfig, tmp_path: Path, dataset: dict) -> AppConfig:
+    """小さな画像サイズ・resnet18・CPU・一時Run出力先へ置き換える。"""
+    height, width = IMAGE_SIZE
+    preprocessing = dataclasses.replace(
+        config.preprocessing,
+        resize=dataclasses.replace(config.preprocessing.resize, width=width, height=height),
+    )
+    return dataclasses.replace(
+        config,
+        dataset=dataclasses.replace(config.dataset, **dataset),
+        model=dataclasses.replace(config.model, backbone="resnet18"),
+        preprocessing=preprocessing,
+        runtime=dataclasses.replace(config.runtime, device="cpu", batch_size=4),
+        output=dataclasses.replace(config.output, run_root=str(tmp_path / "runs")),
+    )
+
+
+@pytest.fixture
+def walnut_root(tmp_path: Path) -> Path:
+    """くるみDatasetの配置規約に従う小さな合成Dataset（Manifestなし）。
+
+    good: G001〜G010（各2角度）、crack: C001〜C004、chip: K001〜K004（各1枚）。
+    """
+    rng = np.random.default_rng(1)
+    root = tmp_path / "walnut"
+    for i in range(1, 11):
+        for shot in (1, 2):
+            write_png(root / "raw" / "good" / f"G{i:03d}_{shot}.jpg", good_image(rng))
+    for prefix, class_dir in (("C", "crack"), ("K", "chip")):
+        for i in range(1, 5):
+            image, _ = defect_image_and_mask(rng)
+            write_png(root / "raw" / class_dir / f"{prefix}{i:03d}_1.jpg", image)
+    return root
+
+
+@pytest.fixture
+def walnut_config(walnut_root: Path, tmp_path: Path) -> AppConfig:
+    config = load_config(PHASE2_CONFIG)
+    return small_runtime(
+        config,
+        tmp_path,
+        {"root": str(walnut_root), "manifest": str(walnut_root / "manifest.csv")},
     )

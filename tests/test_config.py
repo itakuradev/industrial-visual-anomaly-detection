@@ -174,3 +174,26 @@ class TestInvalidConfig:
             raw = yaml.safe_load(f)
         with pytest.raises(ConfigError, match="dataset.manifest"):
             load_config(write_config(tmp_path, removed(raw, "dataset.manifest")))
+
+
+@pytest.mark.parametrize(
+    ("key", "value", "message"),
+    [
+        ("dataset.split.good.train", 0.7, "合計は 1"),
+        ("dataset.split.defect.train", 0.2, "合計は 1|defect.train"),
+        ("dataset.split.good.validation", -0.1, "dataset.split.good.validation"),
+    ],
+)
+def test_walnut_split_ratios(tmp_path: Path, key: str, value: float, message: str) -> None:
+    with PHASE2_CONFIG.open(encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+    with pytest.raises(ConfigError, match=message):
+        load_config(write_config(tmp_path, modified(raw, key, value)))
+
+
+def test_walnut_defect_train_must_be_zero(tmp_path: Path) -> None:
+    with PHASE2_CONFIG.open(encoding="utf-8") as f:
+        raw = yaml.safe_load(f)
+    raw["dataset"]["split"]["defect"] = {"train": 0.2, "validation": 0.4, "test": 0.4}
+    with pytest.raises(ConfigError, match="defect.train は 0"):
+        load_config(write_config(tmp_path, raw))

@@ -32,12 +32,28 @@ class ProjectConfig:
 
 
 @dataclass(frozen=True)
+class SplitRatios:
+    train: float
+    validation: float
+    test: float
+
+
+@dataclass(frozen=True)
+class ManifestSplitConfig:
+    """独自DatasetのManifest作成時に使うsplit比率（object_id単位で割り当てる）。"""
+
+    good: SplitRatios
+    defect: SplitRatios  # 異常画像は学習に使わないため train は 0
+
+
+@dataclass(frozen=True)
 class DatasetConfig:
     type: str
     root: str
     category: str | None = None
     manifest: str | None = None
     threshold_split_ratio: float | None = None
+    split: ManifestSplitConfig | None = None
 
 
 @dataclass(frozen=True)
@@ -332,9 +348,38 @@ def _parse_dataset(s: _Section) -> DatasetConfig:
                 "（最終評価用のデータが残らないため）。"
             )
     else:
-        config = DatasetConfig(type=dataset_type, root=root, manifest=s.str_("manifest"))
+        config = DatasetConfig(
+            type=dataset_type,
+            root=root,
+            manifest=s.str_("manifest"),
+            split=_parse_manifest_split(s.section("split")),
+        )
     s.finish()
     return config
+
+
+def _parse_manifest_split(s: _Section) -> ManifestSplitConfig:
+    ratios = {}
+    for label in ("good", "defect"):
+        r = s.section(label)
+        values = {
+            name: r.float_(name, minimum=0.0, maximum=1.0, default=0.0)
+            for name in ("train", "validation", "test")
+        }
+        r.finish()
+        if abs(sum(values.values()) - 1.0) > 1e-6:
+            raise ConfigError(
+                f"dataset.split.{label} の train / validation / test の合計は"
+                f" 1 である必要があります（値: {values}）。"
+            )
+        ratios[label] = SplitRatios(**values)
+    if ratios["defect"].train != 0.0:
+        raise ConfigError(
+            "dataset.split.defect.train は 0 である必要があります"
+            "（PatchCoreの学習には正常画像のみを使用します）。"
+        )
+    s.finish()
+    return ManifestSplitConfig(good=ratios["good"], defect=ratios["defect"])
 
 
 def _parse_model(s: _Section) -> ModelConfig:
