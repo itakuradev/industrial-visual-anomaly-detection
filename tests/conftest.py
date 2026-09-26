@@ -53,7 +53,7 @@ def mvtec_root(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def small_config(mvtec_root: Path) -> AppConfig:
+def small_config(mvtec_root: Path, tmp_path: Path) -> AppConfig:
     """合成Dataset・小さな画像サイズ・resnet18・CPUを使うテスト用設定。"""
     config = load_config(PHASE1_CONFIG)
     height, width = IMAGE_SIZE
@@ -67,4 +67,5 @@ def small_config(mvtec_root: Path) -> AppConfig:
         model=dataclasses.replace(config.model, backbone="resnet18"),
         preprocessing=preprocessing,
         runtime=dataclasses.replace(config.runtime, device="cpu", batch_size=4),
+        output=dataclasses.replace(config.output, run_root=str(tmp_path / "runs")),
     )
