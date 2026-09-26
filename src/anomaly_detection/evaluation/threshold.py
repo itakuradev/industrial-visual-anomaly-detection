@@ -60,9 +60,7 @@ def compute_f1_threshold(scores: np.ndarray, labels: np.ndarray) -> float:
             "Datasetの分割を見直すか、threshold.mode: manual を使用してください。"
         )
     metric = F1AdaptiveThreshold(fields=["pred_score", "gt_label"])
-    metric.update(
-        SimpleNamespace(pred_score=torch.from_numpy(scores), gt_label=torch.from_numpy(labels))
-    )
+    metric.update(SimpleNamespace(pred_score=torch.tensor(scores), gt_label=torch.tensor(labels)))
     return float(metric.compute())
 
 

@@ -115,7 +115,9 @@ def render_result(
         color="black" if correct else "red",
         fontsize=12,
     )
-    figure.text(0.5, 0.02, str(row["image_path"]), ha="center", fontsize=7, color="gray")
+    # 絶対パス（ユーザー名等）を画像に残さないよう、末尾3階層だけを表示する
+    short_path = "/".join(Path(row["image_path"]).parts[-3:])
+    figure.text(0.5, 0.02, short_path, ha="center", fontsize=8, color="gray")
     return figure
 
 

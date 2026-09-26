@@ -78,8 +78,8 @@ def compute_pixel_metrics(anomaly_maps: np.ndarray, gt_masks: np.ndarray) -> dic
         logger.warning("異常Pixelが存在しないため、Pixel-level指標は算出しません。")
         return {"pixel_auroc": None, "pixel_aupro": None, "aupro_fpr_limit": AUPRO_FPR_LIMIT}
     batch = SimpleNamespace(
-        anomaly_map=torch.from_numpy(np.asarray(anomaly_maps, dtype=np.float32)),
-        gt_mask=torch.from_numpy(np.asarray(gt_masks, dtype=bool)),
+        anomaly_map=torch.tensor(np.asarray(anomaly_maps, dtype=np.float32)),
+        gt_mask=torch.tensor(np.asarray(gt_masks, dtype=bool)),
     )
     auroc = AUROC(fields=["anomaly_map", "gt_mask"])
     aupro = AUPRO(fields=["anomaly_map", "gt_mask"], fpr_limit=AUPRO_FPR_LIMIT)
