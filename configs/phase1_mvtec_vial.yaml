@@ -1,0 +1,67 @@
+# Phase 1: MVTec AD 2 / Vial
+# 相対パスはプロジェクトルート（pyproject.tomlのあるディレクトリ）を基準に解決する。
+
+project:
+  name: industrial-visual-anomaly-detection
+  seed: 42
+
+dataset:
+  type: mvtec_ad2
+  root: data/mvtec_ad2
+  category: vial
+  # test_publicのうち閾値決定（validation）に使う割合。残りを最終評価（test）に使う。
+  threshold_split_ratio: 0.5
+
+model:
+  name: patchcore
+  backbone: wide_resnet50_2
+  layers: [layer2, layer3]
+  coreset_sampling_ratio: 0.1
+  num_neighbors: 9
+
+preprocessing:
+  resize:
+    enabled: true
+    width: 256
+    height: 256
+
+  crop:
+    enabled: false
+    x: 0
+    y: 0
+    width: 0
+    height: 0
+
+  contrast:
+    enabled: false
+    alpha: 1.2
+    beta: 0
+
+  clahe:
+    enabled: false
+    clip_limit: 2.0
+    tile_grid_size: 8
+
+  denoise:
+    enabled: false
+    method: gaussian  # gaussian | median
+    kernel_size: 3
+
+  normalize:
+    enabled: false
+
+threshold:
+  mode: auto  # auto: validationでF1最大の閾値 / manual: manual_valueを使用
+  manual_value: null  # PatchCoreの生スコア単位。mode: manual の場合に必須
+
+runtime:
+  device: auto  # auto | cuda | cpu
+  batch_size: 8
+  num_workers: 0  # WindowsのJupyterではマルチプロセス読み込みが停止しやすいため0を既定とする
+
+output:
+  run_root: runs
+  save_model: true
+  save_predictions: true
+  save_heatmaps: true
+  save_overlays: true
