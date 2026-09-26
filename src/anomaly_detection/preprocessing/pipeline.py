@@ -89,6 +89,14 @@ class ImagePreprocessor:
         """GT Maskに画像と同じ幾何変換（crop / resize）を適用する。"""
         return self._geometry(mask, interpolation=cv2.INTER_NEAREST)
 
+    def apply_geometry(self, image: np.ndarray) -> np.ndarray:
+        """幾何変換（crop / resize）のみを適用する。
+
+        Anomaly Mapと位置を合わせて元画像を表示するために使う。
+        """
+        out = self._geometry(image, interpolation=None)
+        return out.copy() if np.shares_memory(out, image) else out
+
     def _geometry(self, image: np.ndarray, interpolation: int | None) -> np.ndarray:
         c = self.config
         out = image
