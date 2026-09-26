@@ -1,0 +1,23 @@
+# Python / 環境
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Dataset（本体はGit管理しない）
+data/*
+!data/README.md
+!data/.gitkeep
+
+# 実行結果（Run）
+runs/*
+!runs/.gitkeep
+
+# Model Artifact
+*.ckpt
+*.pt
+*.pth
