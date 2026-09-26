@@ -125,6 +125,8 @@ uv run pytest      # 動作確認（実データ・GPU不要）
 - WindowsとLinuxでは、PyTorch / torchvisionをCUDA 13.0ビルド（`cu130`）の配布元から取得します。
   - RTX 50系（Blackwell）で動作させるためにこの組み合わせを選びました。cu126ビルドは非対応で、cu128ビルドはPyTorch 2.11以降の提供がありません。
 - 初回の学習時に、Backbone（Wide ResNet50）の学習済み重みをHugging Face Hubから自動でDownloadします。
+- Windowsで深い階層にcloneすると、`.venv` 内のファイルのパスが260文字を超え、scikit-learnの読み込みに失敗することがあります（`No module named 'sklearn.metrics._pairwise_distances_reduction...'`）。
+  - 対処: 浅い場所（例: `C:\work\`）にcloneするか、WindowsのLong Path（`LongPathsEnabled`）を有効にしてください。
 
 ## Dataset
 
